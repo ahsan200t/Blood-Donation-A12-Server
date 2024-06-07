@@ -27,9 +27,16 @@ async function run() {
         await client.connect();
         const donationRequestCollection = client.db('bloodDonationDb').collection('donationRequest');
         // Donation Request Related Api
-        app.post('/donation-request', async(req,res)=>{
-            const requestData=req.body;
-            const result =await donationRequestCollection.insertOne(requestData);
+        app.post('/donation-request', async (req, res) => {
+            const requestData = req.body;
+            const result = await donationRequestCollection.insertOne(requestData);
+            res.send(result)
+        })
+        // get all request for donor
+        app.get('/my-request/:email', async (req, res) => {
+            const email = req.params.email;
+            let query = { 'donor.email': email };
+            const result = await donationRequestCollection.find(query).toArray()
             res.send(result)
         })
 
