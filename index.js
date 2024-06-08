@@ -27,6 +27,7 @@ async function run() {
         await client.connect();
         const donationRequestCollection = client.db('bloodDonationDb').collection('donationRequest');
         // Donation Request Related Api
+
         app.post('/donation-request', async (req, res) => {
             const requestData = req.body;
             const result = await donationRequestCollection.insertOne(requestData);
@@ -37,6 +38,12 @@ async function run() {
             const email = req.params.email;
             let query = { 'donor.email': email };
             const result = await donationRequestCollection.find(query).toArray()
+            res.send(result)
+        })
+
+        app.get('/donation-request', async (req, res) => {
+            const request = req.body;
+            const result = await donationRequestCollection.find(request).toArray();
             res.send(result)
         })
 
