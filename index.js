@@ -3,7 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 // const cookieParser = require('cookie-parser');
 // const jwt = require('jsonwebtoken');
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId, Timestamp } = require('mongodb');
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -35,6 +35,8 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
         const donationRequestCollection = client.db('bloodDonationDb').collection('donationRequest');
+        const usersCollection = client.db('bloodDonationDb').collection('users');
+
         // Auth Related Api
         // app.post('/jwt', async (req, res) => {
         //     const user = req.body
@@ -61,6 +63,29 @@ async function run() {
         //         res.status(500).send(err)
         //     }
         // })
+
+        // Save a User Data in db
+        app.put('/user', async (req, res) => {
+            const user = req.body;
+            // check user already exist in db
+            const isExist = await usersCollection.findOne({ email: user?.email });
+            if (isExist) return res.send(isExist)
+            const options = { upsert: true };
+            const query = { email: user?.email };
+            const updateDoc = {
+                $set: {
+                    ...user,
+                    // Timestamp: date.now(),
+                }
+            }
+            const result = await usersCollection.updateOne(query, updateDoc, options);
+            res.send(result)
+        })
+        // Save All User
+        app.get('/users', async (req, res) => {
+            const result = await usersCollection.find().toArray();
+            res.send(result)
+        })
 
         // Donation Request Related Api
         app.post('/donation-request', async (req, res) => {
@@ -103,7 +128,7 @@ async function run() {
             const options = { upsert: true };
             const updatedRequest = req.body;
             const request = {
-                $set:{
+                $set: {
                     recipient: updatedRequest.recipient,
                     district: updatedRequest.district,
                     upazila: updatedRequest.upazila,
@@ -113,20 +138,20 @@ async function run() {
 
                 }
             }
-            const result = await donationRequestCollection.updateOne(filter,request,options);
+            const result = await donationRequestCollection.updateOne(filter, request, options);
             res.send(result)
         })
 
-        app.get('/update/:id', async(req,res)=>{
+        app.get('/update/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await donationRequestCollection.findOne(query);
             res.send(result);
         })
         // recent Donation section delete
-        app.delete('/single-donation/:id', async(req,res)=>{
+        app.delete('/single-donation/:id', async (req, res) => {
             const id = req.params.id;
-            const query = {_id: new ObjectId(id)};
+            const query = { _id: new ObjectId(id) };
             const result = await donationRequestCollection.deleteOne(query);
             res.send(result)
         })
