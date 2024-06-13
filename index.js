@@ -75,17 +75,23 @@ async function run() {
             const updateDoc = {
                 $set: {
                     ...user,
-                    // Timestamp: date.now(),
                 }
             }
             const result = await usersCollection.updateOne(query, updateDoc, options);
             res.send(result)
         })
-        // Save All User
+        // get a userInfo by email from db
+        app.get('/user/:email', async (req,res)=>{
+            const email = req.params.email;
+            const result = await usersCollection.findOne({email});
+            res.send(result)
+        })
+        // get All User
         app.get('/users', async (req, res) => {
             const result = await usersCollection.find().toArray();
             res.send(result)
         })
+         
 
         // Donation Request Related Api
         app.post('/donation-request', async (req, res) => {
