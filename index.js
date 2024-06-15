@@ -38,31 +38,31 @@ async function run() {
         const usersCollection = client.db('bloodDonationDb').collection('users');
 
         // Auth Related Api
-        // app.post('/jwt', async (req, res) => {
-        //     const user = req.body
-        //     const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        //         expiresIn: '365d',
-        //     })
-        //     res.cookie('token', token, {
-        //             httpOnly: true,
-        //             secure: process.env.NODE_ENV === 'production',
-        //             sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-        //         })
-        //         .send({ success: true })
-        // })
-        // // Logout
-        // app.get('/logout', async (req, res) => {
-        //     try {
-        //         res.clearCookie('token', {
-        //                 maxAge: 0,
-        //                 secure: process.env.NODE_ENV === 'production',
-        //                 sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-        //             }).send({ success: true })
-        //         console.log('Logout successful')
-        //     } catch (err) {
-        //         res.status(500).send(err)
-        //     }
-        // })
+        app.post('/jwt', async (req, res) => {
+            const user = req.body
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+                expiresIn: '365d',
+            })
+            res.cookie('token', token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+            })
+                .send({ success: true })
+        })
+        // Logout
+        app.get('/logout', async (req, res) => {
+            try {
+                res.clearCookie('token', {
+                    maxAge: 0,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+                }).send({ success: true })
+                console.log('Logout successful')
+            } catch (err) {
+                res.status(500).send(err)
+            }
+        })
 
         // Save a User Data in db
         app.put('/user', async (req, res) => {
@@ -81,9 +81,9 @@ async function run() {
             res.send(result)
         })
         // get a userInfo by email from db
-        app.get('/user/:email', async (req,res)=>{
+        app.get('/user/:email', async (req, res) => {
             const email = req.params.email;
-            const result = await usersCollection.findOne({email});
+            const result = await usersCollection.findOne({ email });
             res.send(result)
         })
         // get All User
@@ -91,7 +91,20 @@ async function run() {
             const result = await usersCollection.find().toArray();
             res.send(result)
         })
-         
+        // Update a User Role
+        app.patch('/users/update/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const query = { email };
+            const updateDoc = {
+                $set: {
+                    ...user,
+                }
+            }
+            const result = await usersCollection.updateOne(query,updateDoc);
+            res.send(result)
+        })
+
 
         // Donation Request Related Api
         app.post('/donation-request', async (req, res) => {
