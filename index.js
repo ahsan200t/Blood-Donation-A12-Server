@@ -36,21 +36,22 @@ async function run() {
         await client.connect();
         const donationRequestCollection = client.db('bloodDonationDb').collection('donationRequest');
         const usersCollection = client.db('bloodDonationDb').collection('users');
+        const blogCollection = client.db('bloodDonationDb').collection('blogs');
 
         // Auth Related Api
-        app.post('/jwt', async (req, res) => {
-            const user = req.body
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-                expiresIn: '365d',
-            })
-            res.cookie('token', token, {
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
-            })
-                .send({ success: true })
-        })
-        // Logout
+        // app.post('/jwt', async (req, res) => {
+        //     const user = req.body
+        //     const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        //         expiresIn: '365d',
+        //     })
+        //     res.cookie('token', token, {
+        //         httpOnly: true,
+        //         secure: process.env.NODE_ENV === 'production',
+        //         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+        //     })
+        //         .send({ success: true })
+        // })
+         // Logout
         app.get('/logout', async (req, res) => {
             try {
                 res.clearCookie('token', {
@@ -104,6 +105,7 @@ async function run() {
             const result = await usersCollection.updateOne(query,updateDoc);
             res.send(result)
         })
+
 
 
         // Donation Request Related Api
@@ -172,6 +174,23 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await donationRequestCollection.deleteOne(query);
+            res.send(result)
+        })
+        // Blog related Api
+        app.post('/blogs', async (req, res) => {
+            const blogs = req.body;
+            const result = await blogCollection.insertOne(blogs);
+            res.send(result)
+        })
+        app.get('/blogs', async (req, res) => {
+            const request = req.body;
+            const result = await blogCollection.find(request).toArray();
+            res.send(result)
+        })
+        app.delete('/blog/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id) };
+            const result = await blogCollection.deleteOne(query);
             res.send(result)
         })
         // Send a ping to confirm a successful connection
